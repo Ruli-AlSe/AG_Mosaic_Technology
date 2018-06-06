@@ -31,7 +31,7 @@ def generate_population(length, img_original, img_new):
 def crossover(CF, h, w, pop_original, pop_new):
     for i in range(h):
         for j in range(w):
-            #Se obtiene un número aleatorio que será comparado con nuestra PC
+            #Se obtiene un número aleatorio que será comparado con nuestra CF
             numRand = uniform(0, 1)
             if numRand > CF:
                 #Se promedia el valor del nuevo pixel con el de la imagen leída
@@ -42,13 +42,20 @@ def crossover(CF, h, w, pop_original, pop_new):
                 pop_new[i, j] = pop_new[i, j]
     return pop_new
 
-def mutate(parent):
-	index = random.randrange(0,len(parent))
-	childGenes = list(parent)
-	newGene, alternate = random.sample(geneSet, 2)
-	childGenes[index] = alternate if newGene == childGenes[index] else newGene
-	#print('-------------------------------------\n' + newGene + alternate + ' ' + str(index) + ' ' + str(childGenes))
-	return ''.join(childGenes)
+def mutate(MF, h, w, pop_original, pop_new):
+    for i in range(h):
+        for j in range(w):
+            #Se obtiene un número aleatorio que será comparado con nuestra MF
+            numRand = uniform(0, 1)
+            if numRand < MF:
+                #Se promedia el valor del nuevo pixel con el de la imagen leída
+                prom = (pop_original[i, j] + pop_new[i, j]) / 2
+                pop_new[i, j] = prom
+            else:
+                #si no hay cruza entonces los pixeles no se modifican
+                pop_new[i, j] = pop_new[i, j]
+    return pop_new
+	
     
 #Muestra imagenes--------------------------------------------------------------
 def display():
@@ -73,8 +80,9 @@ def display():
 #Inicialización de variables---------------------------------------------------
 name_original = 'dog.png'
 name_gray = 'lena_gray.png'
-crossover_factor = 0.2
+crossover_factor = 0.7
 mutate_factor = 0.1
+total_generations = 100
 image_original = cv2.imread(name_original)
 
 
@@ -84,12 +92,17 @@ print(image_gray.shape)
 image_new = create_image(image_gray.shape)
 
 #Extraer poblaciones iniciales-------------------------------------------------
-population_original, population_new, Ypoints, Xpoints = generate_population(50, image_gray, image_new)
-print('total: ' + str(Xpoints[1] - Xpoints[0]))
+population = 1
+while population < total_generations:
+    population_original, population_new, Ypoints, Xpoints = generate_population(50, image_gray, image_new)
+    print('total: ' + str(Xpoints[1] - Xpoints[0]))
 
-population_new = crossover(crossover_factor, (Ypoints[1] - Ypoints[0]), (Xpoints[1] - Xpoints[0]), population_original, population_new)
+    population_new = crossover(crossover_factor, (Ypoints[1] - Ypoints[0]), (Xpoints[1] - Xpoints[0]), population_original, population_new)
+    population_new = mutate(crossover_factor, (Ypoints[1] - Ypoints[0]), (Xpoints[1] - Xpoints[0]), population_original, population_new)
+    display()
+    
+    population += 1
 
-display()
 
 
 
